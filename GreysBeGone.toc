@@ -1,0 +1,6 @@
+## Interface: 50500
+## Title: Greys Be Gone
+## Notes: Auto-sells grey items and auto-repairs at vendors
+## Author: ChatGPT
+## Version: 1.0
+GreysBeGone.lua
