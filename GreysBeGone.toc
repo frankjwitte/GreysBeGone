@@ -2,6 +2,6 @@
 ## Title: Greys Be Gone
 ## Notes: Auto-sell greys and auto-repair. /gbg for options.
 ## Author: Macey
-## Version: 1.2.2
+## Version: 1.2.3
 ## SavedVariables: GreysBeGoneDB
 GreysBeGone.lua
