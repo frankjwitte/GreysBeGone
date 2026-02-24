@@ -1,7 +1,7 @@
-## Interface: 50503, 11508, 20504
+## Interface: 50503, 11508, 20505
 ## Title: Greys Be Gone
 ## Notes: Auto-sell greys and auto-repair. /gbg for options.
 ## Author: Macey
-## Version: 1.2.3
+## Version: 1.2.4
 ## SavedVariables: GreysBeGoneDB
 GreysBeGone.lua
