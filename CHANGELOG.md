@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.3.1] - 2026-04-27
+- version upgrade
+
 ## [1.3.0] - 2026-04-27
 ### Added
 - `/gbg chatty` command to toggle whether the addon prints "No greys to sell."
