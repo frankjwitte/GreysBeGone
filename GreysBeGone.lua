@@ -9,6 +9,7 @@ local addonName = ...
 GreysBeGoneDB = GreysBeGoneDB or nil
 local DEFAULTS = {
     autoRepair = true,   -- toggle with /gbg toggle
+    verboseNoGreys = false, -- toggle with /gbg chatty
 }
 
 local function deepcopy(tbl)
@@ -46,6 +47,24 @@ local function coin(amount)
     return GetCoinTextureString(amount or 0)
 end
 
+local function isGreyItem(item)
+    if not item then return false, 0 end
+
+    local itemID = item.itemID
+    if not itemID and item.hyperlink then
+        itemID = C_Item.GetItemInfoInstant(item.hyperlink)
+    end
+
+    if not itemID then return false, 0 end
+
+    local _, _, quality, _, _, _, _, _, _, _, sellPrice = C_Item.GetItemInfoInstant(itemID)
+    if quality == 0 and sellPrice and sellPrice > 0 then
+        return true, sellPrice
+    end
+
+    return false, 0
+end
+
 -- =====================
 -- Core
 -- =====================
@@ -81,12 +100,11 @@ frame:SetScript("OnEvent", function(_, event, arg1)
             local numSlots = C_Container.GetContainerNumSlots(bag)
             for slot = 1, numSlots do
                 local info = C_Container.GetContainerItemInfo(bag, slot)
-                if info and info.hyperlink then
-                    local _, _, quality, _, _, _, _, _, _, _, sellPrice = GetItemInfo(info.hyperlink)
-                    local count = info.stackCount or 1
-                    if quality == 0 and sellPrice and sellPrice > 0 then
+                if info then
+                    local isGrey, sellPrice = isGreyItem(info)
+                    if isGrey then
                         C_Container.UseContainerItem(bag, slot)
-                        totalSell = totalSell + (sellPrice * count)
+                        totalSell = totalSell + (sellPrice * (info.stackCount or 1))
                     end
                 end
             end
@@ -94,7 +112,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 
         if totalSell > 0 then
             PrintOK("Sold greys for " .. coin(totalSell))
-        else
+        elseif GreysBeGoneDB and GreysBeGoneDB.verboseNoGreys then
             PrintWarn("No greys to sell.")
         end
     end
@@ -115,11 +133,20 @@ SlashCmdList["GREYSBEGONE"] = function(msg)
             PrintWarn("Auto-repair is |cffff0000DISABLED|r.")
         end
         return
+    elseif msg == "chatty" then
+        GreysBeGoneDB.verboseNoGreys = not GreysBeGoneDB.verboseNoGreys
+        if GreysBeGoneDB.verboseNoGreys then
+            PrintOK("No-grey message is |cff00ff00ENABLED|r.")
+        else
+            PrintWarn("No-grey message is |cffff0000DISABLED|r.")
+        end
+        return
     elseif msg == "status" or msg == "" then
         local ar = GreysBeGoneDB.autoRepair and "|cff00ff00ENABLED|r" or "|cffff0000DISABLED|r"
-        PrintOK("Status → Auto-repair: " .. ar)
+        local ng = GreysBeGoneDB.verboseNoGreys and "|cff00ff00ENABLED|r" or "|cffff0000DISABLED|r"
+        PrintOK("Status → Auto-repair: " .. ar .. " | No-grey message: " .. ng)
         return
     end
 
-    PrintWarn("Commands: /gbg status, /gbg toggle")
+    PrintWarn("Commands: /gbg status, /gbg toggle, /gbg chatty")
 end
