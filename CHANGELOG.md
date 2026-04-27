@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.3.0] - 2026-04-27
+### Added
+- `/gbg chatty` command to toggle whether the addon prints "No greys to sell."
+- Status output now includes both auto-repair and no-grey message settings.
+
+### Changed
+- Junk detection now uses instant item info to avoid delayed item cache issues when selling.
+
+---
 ## [1.2.6] - 2026-03-04
 - Interface version update retail
 
