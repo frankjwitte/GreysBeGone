@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.3.4] - 2026-07-08
+- Interface versions upgrade 
+
 ## [1.3.3] - 2026-06-04
 - Interface versions upgrade 
 
