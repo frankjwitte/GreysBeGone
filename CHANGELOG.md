@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.3.6] - 2026-10-05
+- Interface version upgrade retail (120100)
+
 ## [1.3.5] - 2026-09-26
 - Interface versions upgrade
 
