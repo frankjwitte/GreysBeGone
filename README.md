@@ -34,6 +34,7 @@ World of Warcraft\_classic_\Interface\Addons\GreysBeGone
 | `/gbg toggle`  | Enable/disable auto-repair       |
 | `/gbg chatty`  | Toggle "No greys to sell" message |
 | `/gbg status`  | Check current addon settings     |
+| `/gbg sell`    | Sell greys now (vendor must be open) |
 | `/gbg stats`   | (Coming soon) Track gold totals  |
 
 ---

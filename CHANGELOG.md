@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.3.8] - 2026-10-14
+### Fixed
+- Lua error on retail 12.x: `GetItemInfo` and `GetCoinTextureString` are no longer globals.
+- Grey detection now uses bag item info directly, so uncached items are no longer skipped.
+- `/gbg sell` now only works with a vendor open (previously it could equip or use grey items).
+
 ## [1.3.7] - 2026-10-14
 - Interface version upgrade retail (120105)
 

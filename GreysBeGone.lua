@@ -44,8 +44,20 @@ local function PrintOK(msg)    print(PREFIX_OK .. msg)    end
 local function PrintWarn(msg)  print(PREFIX_WARN .. msg)  end
 local function PrintErr(msg)   print(PREFIX_ERR .. msg)   end
 
+-- Retail 12.x moved GetCoinTextureString into C_CurrencyInfo; Classic still has the global.
+local GetCoinTextureStringCompat = (C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString) or GetCoinTextureString
+
 local function coin(amount)
-    return GetCoinTextureString(amount or 0)
+    amount = amount or 0
+
+    if GetCoinTextureStringCompat then
+        return GetCoinTextureStringCompat(amount)
+    end
+
+    local gold = math.floor(amount / 10000)
+    local silver = math.floor(amount / 100) % 100
+    local copper = amount % 100
+    return string.format("%dg %ds %dc", gold, silver, copper)
 end
 
 -- =====================
@@ -54,6 +66,10 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("MERCHANT_SHOW")
+frame:RegisterEvent("MERCHANT_CLOSED")
+
+-- UseContainerItem only sells while a vendor is open; elsewhere it would equip/use the item.
+local merchantOpen = false
 
 local function repairItemsIfEnabled()
     if not GreysBeGoneDB or not GreysBeGoneDB.autoRepair then
@@ -77,8 +93,12 @@ local function repairItemsIfEnabled()
     end
 end
 
+-- Retail 12.x removed the global GetItemInfo; Classic clients may lack C_Item.GetItemInfo.
+local GetItemInfoCompat = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+
 local function sellGreys()
     local totalSell = 0
+    local soldAny = false
 
     for bag = 0, NUM_BAG_SLOTS do
         local numSlots = C_Container.GetContainerNumSlots(bag)
@@ -86,21 +106,22 @@ local function sellGreys()
         for slot = 1, numSlots do
             local info = C_Container.GetContainerItemInfo(bag, slot)
 
-            if info and info.hyperlink and not info.isLocked then
-                local _, _, quality, _, _, _, _, _, _, _, sellPrice = GetItemInfo(info.hyperlink)
+            -- Poor / grey quality is 0. Container info is available instantly, no item cache needed.
+            if info and info.quality == 0 and not info.hasNoValue and not info.isLocked then
                 local count = info.stackCount or 1
+                local sellPrice = select(11, GetItemInfoCompat(info.itemID or info.hyperlink))
 
-                -- Poor / grey quality is 0.
-                if quality == 0 and sellPrice and sellPrice > 0 then
-                    C_Container.UseContainerItem(bag, slot)
-                    totalSell = totalSell + (sellPrice * count)
-                end
+                C_Container.UseContainerItem(bag, slot)
+                soldAny = true
+                totalSell = totalSell + ((sellPrice or 0) * count)
             end
         end
     end
 
     if totalSell > 0 then
         PrintOK("Sold greys for " .. coin(totalSell))
+    elseif soldAny then
+        PrintOK("Sold greys.")
     elseif GreysBeGoneDB and GreysBeGoneDB.verboseNoGreys then
         PrintWarn("No greys to sell.")
     end
@@ -113,9 +134,15 @@ frame:SetScript("OnEvent", function(_, event, arg1)
     end
 
     if event == "MERCHANT_SHOW" then
+        merchantOpen = true
         ensureDefaults()
         repairItemsIfEnabled()
         sellGreys()
+        return
+    end
+
+    if event == "MERCHANT_CLOSED" then
+        merchantOpen = false
     end
 end)
 
@@ -154,6 +181,11 @@ SlashCmdList["GREYSBEGONE"] = function(msg)
     end
 
     if msg == "sell" then
+        if not merchantOpen then
+            PrintWarn("Open a vendor first.")
+            return
+        end
+
         sellGreys()
         return
     end
